@@ -158,7 +158,8 @@ class Proxmox
             case 'pngb64':
                 $base64 = base64_encode($response->getBody());
                 return 'data:image/png;base64,' . $base64;
-            case 'object': // 'object' not supported yet, we return array instead.
+            case 'object':
+                return json_decode($response->getBody());
             case 'array':
                 return json_decode($response->getBody(), true);
             default:
