@@ -119,6 +119,7 @@ class Proxmox
                     'exceptions' => false,
                     'cookies' => $cookies,
                     'query' => $params,
+                    'debug' => true,
                 ]);
             case 'POST':
             case 'PUT':
@@ -191,29 +192,56 @@ class Proxmox
      */
     public function login()
     {
-        $loginUrl = $this->credentials->getApiUrl() . '/json/access/ticket';
-        $response = $this->httpClient->post($loginUrl, [
-            'verify' => false,
-            'exceptions' => false,
-            'form_params' => [
-                'username' => $this->credentials->getUsername(),
-                'password' => $this->credentials->getPassword(),
-                'realm' => $this->credentials->getRealm(),
-            ],
-        ]);
+        $loginFileJson = sys_get_temp_dir().'/ticketPVE.json';
+        // Check if the ticket is OLDER than 1 hour
+        if (file_exists($loginFileJson) !== true || json_decode(file_get_contents($loginFileJson))->timestamp > (time() + 3600)) {
+            echo "DPONG LOG".PHP_EOL;
+            $loginUrl = $this->credentials->getApiUrl() . '/json/access/ticket';
+            $response = $this->httpClient->post($loginUrl, [
+                'verify' => false,
+                'exceptions' => false,
+                'form_params' => [
+                    'username' => $this->credentials->getUsername(),
+                    'password' => $this->credentials->getPassword(),
+                    'realm' => $this->credentials->getRealm(),
+                ],
+            ]);
 
-        $json = json_decode($response->getBody(), true);
+            $json = json_decode($response->getBody(), true);
 
-        if (!$json['data']) {
-            $error = 'Can not login using credentials: ' . $this->credentials;
-            throw new AuthenticationException($error);
+            if (!$json['data']) {
+                $error = 'Can not login using credentials: ' . $this->credentials;
+                throw new AuthenticationException($error);
+            }
+
+            $authToken = new AuthToken(
+                $json['data']['CSRFPreventionToken'],
+                $json['data']['ticket'],
+                $json['data']['username']
+            );
+
+            $cachedData = [
+                'CSRFPreventionToken' => $json['data']['CSRFPreventionToken'],
+                'ticket' => $json['data']['ticket'],
+                'username' => $json['data']['username'],
+                'username' => $json['data']['username'],
+                'timestamp' => time(),
+            ];
+
+            file_put_contents($loginFileJson, json_encode($cachedData));
+
+        } else {
+            $cachedData = json_decode(file_get_contents($loginFileJson));
+            
+            $authToken = new AuthToken(
+                $cachedData->CSRFPreventionToken,
+                $cachedData->ticket,
+                $cachedData->username
+            );
         }
 
-        return new AuthToken(
-            $json['data']['CSRFPreventionToken'],
-            $json['data']['ticket'],
-            $json['data']['username']
-        );
+        return $authToken;
+
     }
 
 
