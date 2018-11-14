@@ -193,7 +193,7 @@ class Proxmox
     {
         $loginFileJson = sys_get_temp_dir().'/ticketPVE.json';
         // Check if the ticket is OLDER than 1 hour
-        if (file_exists($loginFileJson) !== true || json_decode(file_get_contents($loginFileJson))->timestamp > (time() + 3600)) {
+        if (file_exists($loginFileJson) !== true || json_decode(file_get_contents($loginFileJson))->timestamp < (time() + 3600)) {
             $loginUrl = $this->credentials->getApiUrl() . '/json/access/ticket';
             $response = $this->httpClient->post($loginUrl, [
                 'verify' => false,
@@ -230,7 +230,7 @@ class Proxmox
 
         } else {
             $cachedData = json_decode(file_get_contents($loginFileJson));
-            
+
             $authToken = new AuthToken(
                 $cachedData->CSRFPreventionToken,
                 $cachedData->ticket,
