@@ -119,7 +119,6 @@ class Proxmox
                     'exceptions' => false,
                     'cookies' => $cookies,
                     'query' => $params,
-                    'debug' => true,
                 ]);
             case 'POST':
             case 'PUT':
@@ -195,7 +194,6 @@ class Proxmox
         $loginFileJson = sys_get_temp_dir().'/ticketPVE.json';
         // Check if the ticket is OLDER than 1 hour
         if (file_exists($loginFileJson) !== true || json_decode(file_get_contents($loginFileJson))->timestamp > (time() + 3600)) {
-            echo "DPONG LOG".PHP_EOL;
             $loginUrl = $this->credentials->getApiUrl() . '/json/access/ticket';
             $response = $this->httpClient->post($loginUrl, [
                 'verify' => false,
