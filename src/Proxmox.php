@@ -62,6 +62,7 @@ class Proxmox
      */
     private $authToken;
 
+    private $hostAddress;
 
     /**
      * Constructor.
@@ -87,6 +88,8 @@ class Proxmox
         $this->setCredentials($credentials);
 
         $this->setResponseType($responseType);
+
+        $this->hostAddress = $credentials['hostname'];
     }
 
 
@@ -191,7 +194,7 @@ class Proxmox
      */
     public function login()
     {
-        $loginFileJson = sys_get_temp_dir().'/ticketPVE.json';
+        $loginFileJson = sys_get_temp_dir().'/' . $this->hostAddress . '_ticketPVE.json';
         // Check if the ticket is OLDER than 1 hour
         if (file_exists($loginFileJson) !== true || json_decode(file_get_contents($loginFileJson))->timestamp < (time() + 3600)) {
             $loginUrl = $this->credentials->getApiUrl() . '/json/access/ticket';
