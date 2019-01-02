@@ -82,6 +82,8 @@ class Proxmox
         $responseType = 'array',
         $httpClient = null
     ) {
+        $this->hostAddress = $credentials['hostname'];
+        
         $this->setHttpClient($httpClient);
 
         // Set credentials and login to the Proxmox server.
@@ -89,7 +91,6 @@ class Proxmox
 
         $this->setResponseType($responseType);
 
-        $this->hostAddress = $credentials['hostname'];
     }
 
 
