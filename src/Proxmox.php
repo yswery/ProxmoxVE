@@ -205,7 +205,7 @@ class Proxmox
         }
 
         // Check if the ticket is OLDER than 1 hour
-        if ($cachedData === false || json_last_error() !== JSON_ERROR_NONE || $cachedData->timestamp < (time() + 3600)) {
+        if ($cachedData === false || json_last_error() !== JSON_ERROR_NONE || $cachedData->timestamp < (time() - 3600)) {
             $loginUrl = $this->credentials->getApiUrl() . '/json/access/ticket';
             $response = $this->httpClient->post($loginUrl, [
                 'verify' => false,
